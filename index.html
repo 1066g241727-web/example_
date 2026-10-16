@@ -1,0 +1,742 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta http-equiv="Content-Security-Policy" content="default-src * data: gap: content: https://ssl.gstatic.com; style-src * 'unsafe-inline'; script-src * 'unsafe-inline' 'unsafe-eval'">
+    <title>ITパスポート・基本情報技術者試験対策アプリ</title>
+    
+    <!-- Monaca基本ライブラリ -->
+    <script src="components/loader.js"></script>
+    <link rel="stylesheet" href="components/loader.css">
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        /* 基本スタイル設定 */
+        :root {
+            --primary-color: #3b82f6;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-color: #1f2937;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 16px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            font-size: 1.3rem;
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 16px;
+            color: #111827;
+        }
+
+        /* タブ切り替えボタン */
+        .tab-buttons {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            background: #f9fafb;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #4b5563;
+            font-size: 16px;
+        }
+
+        .tab-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        /* パネル */
+        .panel {
+            display: none;
+        }
+
+        .panel.active {
+            display: block;
+        }
+
+        /* ステータス表示エリア (タイマー・スコア) */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #e5e7eb;
+            padding: 10px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-weight: bold;
+        }
+
+        .timer-badge {
+            color: var(--danger-color);
+            font-size: 1.2rem;
+        }
+
+        /* 問題文表示カード */
+        .question-card {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        /* 回答ボタン（◯ / ✕） */
+        .answer-buttons {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .btn-maru, .btn-batsu {
+            flex: 1;
+            padding: 16px 0;
+            font-size: 1.8rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+
+        .btn-maru { background-color: var(--danger-color); }
+        .btn-batsu { background-color: var(--primary-color); }
+
+        .btn-maru:disabled, .btn-batsu:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* 判定結果・解説エリア */
+        .feedback-area {
+            min-height: 80px;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .feedback-correct {
+            background-color: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .feedback-incorrect {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+
+        .feedback-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .feedback-desc {
+            font-size: 0.9rem;
+            text-align: left;
+            margin-top: 8px;
+            white-space: pre-wrap;
+        }
+
+        /* メインボタン */
+        .main-btn {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .secondary-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #6b7280;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        /* フォーム共通スタイル */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            height: 80px;
+        }
+
+        .form-message {
+            margin-top: 12px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        /* ランキングテーブル用スタイル */
+        .ranking-area {
+            margin-top: 24px;
+            border-top: 2px dashed #e5e7eb;
+            padding-top: 16px;
+        }
+
+        .ranking-area h2 {
+            font-size: 1.1rem;
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 12px;
+        }
+
+        .ranking-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .ranking-table th, .ranking-table td {
+            padding: 8px 4px;
+            text-align: center;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .ranking-table th {
+            background-color: #f3f4f6;
+            color: #4b5563;
+        }
+
+        .ranking-table tr:nth-child(1) td { font-weight: bold; color: #d97706; } /* 1位 */
+        .ranking-table tr:nth-child(2) td { font-weight: bold; color: #4b5563; } /* 2位 */
+        .ranking-table tr:nth-child(3) td { font-weight: bold; color: #b45309; } /* 3位 */
+    </style>
+
+    <script>
+        const API_KEY = "83d87b36-0208-4d24-99f6-14acea2481f6";
+        const QUESTION_TIME_LIMIT = 10; // 1問あたりの制限時間 (秒)
+        const ADMIN_PASSWORD = "0000"; // 管理者用パスワード
+
+        // ゲームの状態変数
+        let timer = null;
+        let timeLeft = QUESTION_TIME_LIMIT;
+        let score = 0;
+        let currentQuestionNum = 0; // 現在の回答数
+        let maxQuestions = 5;       // 設定された最大問題数
+        let nickname = "";          // プレイヤー名
+        let currentQuestion = null;
+        let isAnsweringAllowed = false;
+        let visitedIds = [];        // 出題済み問題IDを記憶する配列（重複防止）
+
+        // 初期化処理
+        window.onload = function() {
+            renderRanking();
+        };
+
+        // タブ切り替え
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
+
+            if (tabName === 'quiz') {
+                document.getElementById('tab-quiz-btn').classList.add('active');
+                document.getElementById('panel-quiz').classList.add('active');
+            } else {
+                document.getElementById('tab-insert-btn').classList.add('active');
+                document.getElementById('panel-insert').classList.add('active');
+                resetQuiz();
+            }
+        }
+
+        // クイズスタート
+        function startQuiz() {
+            const nameInput = document.getElementById('player-name').value.trim();
+            if (!nameInput) {
+                alert("ニックネームを入力してください。");
+                return;
+            }
+
+            nickname = nameInput;
+            maxQuestions = parseInt(document.getElementById('question-count-select').value, 10);
+            
+            score = 0;
+            currentQuestionNum = 0;
+            visitedIds = []; // 既出問題のリストをリセット
+
+            document.getElementById('start-setup-area').style.display = 'none';
+            document.getElementById('game-area').style.display = 'block';
+            document.getElementById('score').textContent = score;
+            
+            // アクションボタンをクリア
+            const actionContainer = document.getElementById('end-action-buttons');
+            if (actionContainer) actionContainer.innerHTML = '';
+
+            loadNextQuestion();
+        }
+
+        // タイマー停止
+        function stopQuestionTimer() {
+            if (timer) {
+                clearInterval(timer);
+                timer = null;
+            }
+        }
+
+        // 1問ごとのタイマー開始
+        function startQuestionTimer() {
+            stopQuestionTimer();
+            timeLeft = QUESTION_TIME_LIMIT;
+            document.getElementById('timer').textContent = timeLeft;
+
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').textContent = timeLeft;
+
+                if (timeLeft <= 0) {
+                    stopQuestionTimer();
+                    handleAnswer(-1); // 時間切れ（不正解扱い）
+                }
+            }, 1000);
+        }
+
+        // WebAPIから問題を取得
+        function loadNextQuestion() {
+            stopQuestionTimer();
+            isAnsweringAllowed = false;
+            toggleAnswerButtons(false);
+            
+            document.getElementById('question-text').textContent = "問題を読み込んでいます...";
+            document.getElementById('feedback').style.display = 'none';
+            
+            // 進捗表示の更新
+            document.getElementById('progress-text').textContent = `${currentQuestionNum + 1} / ${maxQuestions} 問目`;
+
+            const url = `https://db.monaca.education/select?apikey=${API_KEY}&random=1`;
+
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error("ネットワークエラーが発生しました。");
+                    return response.json();
+                })
+                .then(db => {
+                    // API応答バリデーション
+                    if (db && Array.isArray(db.records) && db.records.length > 0) {
+                        const fetchedRecord = db.records[0];
+
+                        // 重複チェック（IDが存在し、すでに取得済みの場合は再取得を試みる）
+                        if (fetchedRecord.id && visitedIds.includes(fetchedRecord.id) && visitedIds.length < 30) {
+                            // 再試行
+                            loadNextQuestion();
+                            return;
+                        }
+
+                        if (fetchedRecord.id) {
+                            visitedIds.push(fetchedRecord.id);
+                        }
+
+                        currentQuestion = fetchedRecord;
+                        document.getElementById('question-text').textContent = currentQuestion.text0 || "問題文が登録されていません。";
+                        isAnsweringAllowed = true;
+                        toggleAnswerButtons(true);
+                        startQuestionTimer();
+                    } else {
+                        document.getElementById('question-text').textContent = "登録されている問題がありません。";
+                    }
+                })
+                .catch(error => {
+                    console.error("エラー:", error);
+                    document.getElementById('question-text').textContent = "通信エラーが発生しました。時間を置いて再度お試しください。";
+                });
+        }
+
+        // 回答処理 (1=◯, 0=✕, -1=時間切れ)
+        function handleAnswer(userChoice) {
+            if (!isAnsweringAllowed && userChoice !== -1) return;
+
+            stopQuestionTimer();
+            isAnsweringAllowed = false;
+            toggleAnswerButtons(false);
+            currentQuestionNum++;
+
+            const correctAnswer = parseInt(currentQuestion.int0, 10);
+            const isCorrect = (userChoice === correctAnswer);
+
+            const feedbackEl = document.getElementById('feedback');
+            const feedbackTitle = document.getElementById('feedback-title');
+            const feedbackDesc = document.getElementById('feedback-desc');
+
+            if (isCorrect) {
+                const gainedScore = 100 + (timeLeft * 10);
+                score += gainedScore;
+                
+                feedbackEl.className = "feedback-area feedback-correct";
+                feedbackTitle.textContent = `正解！ ⭕ (+${gainedScore}pt)`;
+            } else {
+                feedbackEl.className = "feedback-area feedback-incorrect";
+                if (userChoice === -1) {
+                    feedbackTitle.textContent = "⏰ タイムアップ！ ✕";
+                } else {
+                    feedbackTitle.textContent = "不正解... ❌";
+                }
+            }
+
+            feedbackDesc.textContent = currentQuestion.text1 ? `【解説】\n${currentQuestion.text1}` : "解説はありません。";
+            feedbackEl.style.display = 'block';
+
+            document.getElementById('score').textContent = score;
+
+            // 1.8秒後に次の問題または最終結果へ
+            setTimeout(() => {
+                if (currentQuestionNum < maxQuestions) {
+                    loadNextQuestion();
+                } else {
+                    endQuiz();
+                }
+            }, 1800);
+        }
+
+        // ボタンの有効化/無効化
+        function toggleAnswerButtons(enabled) {
+            document.getElementById('btn-maru').disabled = !enabled;
+            document.getElementById('btn-batsu').disabled = !enabled;
+        }
+
+        // ゲーム終了
+        function endQuiz() {
+            stopQuestionTimer();
+            isAnsweringAllowed = false;
+            toggleAnswerButtons(false);
+
+            document.getElementById('question-text').textContent = `🎉 クイズ終了！`;
+            document.getElementById('progress-text').textContent = `全 ${maxQuestions} 問 終了`;
+            
+            const feedbackEl = document.getElementById('feedback');
+            const feedbackTitle = document.getElementById('feedback-title');
+            const feedbackDesc = document.getElementById('feedback-desc');
+
+            feedbackEl.className = "feedback-area feedback-correct";
+            feedbackTitle.textContent = `${nickname} さんの最終スコア: ${score} pt`;
+            feedbackDesc.textContent = "お疲れ様でした！スコアがランキングに反映されました。";
+            feedbackEl.style.display = 'block';
+
+            // スコア保存
+            saveScore(nickname, score);
+
+            // リトライ & ホームに戻るボタン表示
+            const actionContainer = document.getElementById('end-action-buttons');
+            actionContainer.innerHTML = ''; // クリア
+
+            const retryBtn = document.createElement('button');
+            retryBtn.className = 'main-btn';
+            retryBtn.textContent = "もう一度挑戦する";
+            retryBtn.onclick = startQuiz;
+
+            const homeBtn = document.createElement('button');
+            homeBtn.className = 'secondary-btn';
+            homeBtn.textContent = "ホームに戻る";
+            homeBtn.onclick = resetQuiz;
+
+            actionContainer.appendChild(retryBtn);
+            actionContainer.appendChild(homeBtn);
+        }
+
+        // 初期画面に戻る
+        function resetQuiz() {
+            stopQuestionTimer();
+            document.getElementById('start-setup-area').style.display = 'block';
+            document.getElementById('game-area').style.display = 'none';
+            
+            const actionContainer = document.getElementById('end-action-buttons');
+            if (actionContainer) actionContainer.innerHTML = '';
+
+            renderRanking();
+        }
+
+        // スコア保存処理 (localStorage)
+        function saveScore(name, scoreValue) {
+            try {
+                const now = new Date();
+                const dateStr = `${now.getMonth() + 1}/${now.getDate()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+                const newRecord = {
+                    name: name,
+                    score: scoreValue,
+                    date: dateStr
+                };
+
+                let ranking = JSON.parse(localStorage.getItem('quiz_ranking') || '[]');
+                if (!Array.isArray(ranking)) ranking = [];
+                
+                ranking.push(newRecord);
+                ranking.sort((a, b) => b.score - a.score);
+                ranking = ranking.slice(0, 10);
+
+                localStorage.setItem('quiz_ranking', JSON.stringify(ranking));
+            } catch (e) {
+                console.error("ローカルストレージの保存に失敗しました", e);
+            }
+        }
+
+        // ランキング描画
+        function renderRanking() {
+            try {
+                const ranking = JSON.parse(localStorage.getItem('quiz_ranking') || '[]');
+                const tbody = document.getElementById('ranking-list');
+                tbody.innerHTML = '';
+
+                if (!Array.isArray(ranking) || ranking.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4">まだ記録がありません</td></tr>';
+                    return;
+                }
+
+                ranking.forEach((item, index) => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${index + 1}位</td>
+                        <td>${escapeHtml(item.name)}</td>
+                        <td>${item.score} pt</td>
+                        <td>${item.date}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (e) {
+                console.error("ランキングの読み込みに失敗しました", e);
+            }
+        }
+
+        // XSS防止用エスケープ
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // クイズ登録処理
+        function submitInsert(event) {
+            event.preventDefault();
+
+            const text0 = document.getElementById('insert-text0').value.trim();
+            const int0 = document.getElementById('insert-int0').value;
+            const text1 = document.getElementById('insert-text1').value.trim();
+            const inputPass = document.getElementById('insert-password').value;
+            const msgEl = document.getElementById('insert-message');
+
+            if (!text0) {
+                msgEl.style.color = "var(--danger-color)";
+                msgEl.textContent = "問題文を入力してください。";
+                return;
+            }
+
+            if (inputPass !== ADMIN_PASSWORD) {
+                msgEl.style.color = "var(--danger-color)";
+                msgEl.textContent = "パスワードが正しくありません。";
+                return;
+            }
+
+            const url = `https://db.monaca.education/insert?apikey=${API_KEY}&text0=${encodeURIComponent(text0)}&int0=${int0}&text1=${encodeURIComponent(text1)}`;
+
+            msgEl.style.color = "black";
+            msgEl.textContent = "登録中...";
+
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error("登録リクエストに失敗しました。");
+                    return response.json();
+                })
+                .then(result => {
+                    msgEl.style.color = "var(--success-color)";
+                    msgEl.textContent = "クイズをデータベースに登録しました！";
+                    document.getElementById('insert-form').reset();
+                })
+                .catch(error => {
+                    console.error("エラー:", error);
+                    msgEl.style.color = "var(--danger-color)";
+                    msgEl.textContent = "通信エラーにより登録に失敗しました。";
+                });
+        }
+    </script>
+</head>
+<body>
+
+    <div class="container">
+        <h1>ITパスポート・基本情報技術者<br>試験対策アプリ</h1>
+
+        <!-- タブナビゲーション -->
+        <div class="tab-buttons">
+            <button id="tab-quiz-btn" class="tab-btn active" onclick="switchTab('quiz')">クイズを解く</button>
+            <button id="tab-insert-btn" class="tab-btn" onclick="switchTab('insert')">問題を登録</button>
+        </div>
+
+        <!-- 1. クイズ挑戦パネル -->
+        <div id="panel-quiz" class="panel active">
+            
+            <!-- 初期スタート設定エリア -->
+            <div id="start-setup-area">
+                <div class="form-group">
+                    <label for="player-name">ニックネーム</label>
+                    <input type="text" id="player-name" placeholder="例: たろう" maxlength="10">
+                </div>
+
+                <div class="form-group">
+                    <label for="question-count-select">出題数</label>
+                    <select id="question-count-select">
+                        <option value="5">5 問</option>
+                        <option value="10" selected>10 問</option>
+                        <option value="15">15 問</option>
+                    </select>
+                </div>
+
+                <button id="start-btn" class="main-btn" onclick="startQuiz()">クイズスタート</button>
+
+                <!-- ランキング表示 -->
+                <div class="ranking-area">
+                    <h2>🏆 累計スコアランキング TOP10</h2>
+                    <table class="ranking-table">
+                        <thead>
+                            <tr>
+                                <th>順位</th>
+                                <th>名前</th>
+                                <th>スコア</th>
+                                <th>日時</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ranking-list">
+                            <!-- JSで生成 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- クイズ実行エリア -->
+            <div id="game-area" style="display: none;">
+                <!-- ステータスバー（タイマー＆スコア） -->
+                <div class="status-bar">
+                    <div><span id="progress-text">1 / 10 問目</span></div>
+                    <div>制限時間: <span id="timer" class="timer-badge">10</span> 秒</div>
+                    <div>スコア: <span id="score">0</span> pt</div>
+                </div>
+
+                <!-- 問題文カード -->
+                <div class="question-card" id="question-text">
+                    問題を読み込んでいます...
+                </div>
+
+                <!-- 回答ボタン (◯=1, ✕=0) -->
+                <div class="answer-buttons">
+                    <button id="btn-maru" class="btn-maru" onclick="handleAnswer(1)">◯</button>
+                    <button id="btn-batsu" class="btn-batsu" onclick="handleAnswer(0)">✕</button>
+                </div>
+
+                <!-- 判定・解説表示エリア -->
+                <div id="feedback" class="feedback-area" style="display: none;">
+                    <div id="feedback-title" class="feedback-title"></div>
+                    <div id="feedback-desc" class="feedback-desc"></div>
+                </div>
+
+                <!-- 終了時の操作ボタン用エリア -->
+                <div id="end-action-buttons"></div>
+            </div>
+
+        </div>
+
+        <!-- 2. 問題登録パネル -->
+        <div id="panel-insert" class="panel">
+            <form id="insert-form" onsubmit="submitInsert(event)">
+                <div class="form-group">
+                    <label for="insert-text0">問題文</label>
+                    <input type="text" id="insert-text0" placeholder="例: HTTPのポート番号は通常80番である。" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="insert-int0">正解</label>
+                    <select id="insert-int0">
+                        <option value="1">◯ （正しい）</option>
+                        <option value="0">✕ （誤り）</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="insert-text1">解説文</label>
+                    <textarea id="insert-text1" placeholder="例: HTTPは80番、HTTPSは443番ポートを使用します。"></textarea>
+                </div>
+
+                <!-- 登録用パスワード入力項目 -->
+                <div class="form-group">
+                    <label for="insert-password">登録パスワード</label>
+                    <input type="password" id="insert-password" placeholder="パスワードを入力" required>
+                </div>
+
+                <button type="submit" class="main-btn">クイズをデータベースに登録</button>
+            </form>
+
+            <div id="insert-message" class="form-message"></div>
+        </div>
+
+    </div>
+
+</body>
+</html>
